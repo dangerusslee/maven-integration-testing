@@ -20,68 +20,33 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.apache.maven.it.util.ResourceExtractor;
 
-public class MavenITmng2199ParentVersionRangeTest
+public class MavenITmng2199ParentVersionRange350Test
     extends AbstractMavenIntegrationTestCase
 {
 
-    public MavenITmng2199ParentVersionRangeTest()
+    public MavenITmng2199ParentVersionRange350Test()
     {
-        super( "[3.2.2,)" );
+        super( "[3.5.0,)" );
     }
 
-    public void testValidParentVersionRangeWithInclusiveUpperBound()
-        throws Exception
-    {
-        Verifier verifier = null;
-        File testDir =
-            ResourceExtractor.simpleExtractResources( getClass(),
-                                                      "/mng-2199-parent-version-range/valid-inclusive-upper-bound" );
-
-        try
-        {
-            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
-            verifier.addCliOption( "-U" );
-            verifier.setAutoclean( false );
-
-            verifier.executeGoal( "verify" );
-            verifier.verifyErrorFreeLog();
-
-            // All Maven versions not supporting remote parent version ranges will log a warning message whenever
-            // building a parent fails. The build succeeds without any parent. If that warning message appears in the
-            // log, parent resolution failed.
-            final List<String> lines = verifier.loadFile( new File( testDir, "log.txt" ), false );
-            assertFalse( "Unxpected error message found.",
-                         indexOf( lines, ".*Failed to build parent project.*" ) >= 0 );
-
-        }
-        finally
-        {
-            if ( verifier != null )
-            {
-                verifier.resetStreams();
-            }
-        }
-    }
-
-    public void testValidParentVersionRangeWithExclusiveUpperBound()
+    public void testValidLocalParentVersionRange()
         throws Exception
     {
         Verifier verifier = null;
         File testDir = ResourceExtractor.simpleExtractResources(
-            getClass(), "/mng-2199-parent-version-range/valid-exclusive-upper-bound" );
+            getClass(), "/mng-2199-parent-version-range/valid-local/child" );
 
         try
         {
-            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
-            verifier.addCliOption( "-U" );
-            verifier.setAutoclean( false );
-
+            verifier = newVerifier( testDir.getAbsolutePath() );
             verifier.executeGoal( "verify" );
             verifier.verifyErrorFreeLog();
 
             // All Maven versions not supporting remote parent version ranges will log a warning message whenever
             // building a parent fails. The build succeeds without any parent. If that warning message appears in the
-            // log, parent resolution failed.
+            // log, parent resolution failed. For this test, this really just tests the project on disk getting tested
+            // is not corrupt. It's expected to find the local parent and not fall back to remote resolution. If it
+            // falls back to remote resolution, this just catches the test project to be broken.
             final List<String> lines = verifier.loadFile( new File( testDir, "log.txt" ), false );
             assertFalse( "Unxpected error message found.",
                          indexOf( lines, ".*Failed to build parent project.*" ) >= 0 );
@@ -96,17 +61,17 @@ public class MavenITmng2199ParentVersionRangeTest
         }
     }
 
-    public void testInvalidParentVersionRangeWithoutUpperBound()
+    public void testInvalidLocalParentVersionRange()
         throws Exception
     {
+        // Fallback to remote resolution not tested here. Remote parent expected to not be available anywhere.
         Verifier verifier = null;
-        File testDir = ResourceExtractor.simpleExtractResources( getClass(), "/mng-2199-parent-version-range/invalid" );
+        File testDir = ResourceExtractor.simpleExtractResources(
+            getClass(), "/mng-2199-parent-version-range/invalid-local/child" );
 
         try
         {
-            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
-            verifier.setAutoclean( false );
-            verifier.addCliOption( "-U" );
+            verifier = newVerifier( testDir.getAbsolutePath() );
             verifier.executeGoal( "verify" );
             fail( "Expected 'VerificationException' not thrown." );
         }
@@ -114,8 +79,39 @@ public class MavenITmng2199ParentVersionRangeTest
         {
             assertNotNull( verifier );
             final List<String> lines = verifier.loadFile( new File( testDir, "log.txt" ), false );
-            assertTrue( "Expected error message not found.",
-                        indexOf( lines, ".*(parent)? version range.*does not specify an upper bound.*" ) >= 0 );
+            int msg = indexOf( lines, ".*Non-resolvable parent POM org.apache.maven.its.mng2199:local-parent:\\[2,3\\].*" );
+            assertTrue( "Expected error message not found.", msg >= 0 );
+        }
+        finally
+        {
+            if ( verifier != null )
+            {
+                verifier.resetStreams();
+            }
+        }
+    }
+
+    public void testInvalidLocalParentVersionRangeFallingBackToRemote()
+        throws Exception
+    {
+        Verifier verifier = null;
+        File testDir = ResourceExtractor.simpleExtractResources(
+            getClass(), "/mng-2199-parent-version-range/local-fallback-to-remote/child" );
+
+        try
+        {
+            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
+            verifier.executeGoal( "verify" );
+            verifier.verifyErrorFreeLog();
+
+            // All Maven versions not supporting remote parent version ranges will log a warning message whenever
+            // building a parent fails. The build succeeds without any parent. If that warning message appears in the
+            // log, parent resolution failed. For this test, local parent resolution falls back to remote parent
+            // resolution with a version range in use. If the warning message is in the logs, that remote parent
+            // resolution failed unexpectedly.
+            final List<String> lines = verifier.loadFile( new File( testDir, "log.txt" ), false );
+            assertFalse( "Unxpected error message found.",
+                         indexOf( lines, ".*Failed to build parent project.*" ) >= 0 );
 
         }
         finally
@@ -127,18 +123,16 @@ public class MavenITmng2199ParentVersionRangeTest
         }
     }
 
-    public void testValidParentVersionRangeInvalidVersionExpression()
+    public void testValidLocalParentVersionRangeInvalidVersionExpression()
         throws Exception
     {
         Verifier verifier = null;
         File testDir = ResourceExtractor.simpleExtractResources(
-            getClass(), "/mng-2199-parent-version-range/expression" );
+            getClass(), "/mng-2199-parent-version-range/expression-local/child" );
 
         try
         {
-            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
-            verifier.setAutoclean( false );
-            verifier.addCliOption( "-U" );
+            verifier = newVerifier( testDir.getAbsolutePath() );
             verifier.executeGoal( "verify" );
             fail( "Expected 'VerificationException' not thrown." );
         }
@@ -158,18 +152,16 @@ public class MavenITmng2199ParentVersionRangeTest
         }
     }
 
-    public void testValidParentVersionRangeInvalidVersionInheritance()
+    public void testValidLocalParentVersionRangeInvalidVersionInheritance()
         throws Exception
     {
         Verifier verifier = null;
         File testDir = ResourceExtractor.simpleExtractResources(
-            getClass(), "/mng-2199-parent-version-range/inherited" );
+            getClass(), "/mng-2199-parent-version-range/inherited-local/child" );
 
         try
         {
-            verifier = newVerifier( testDir.getAbsolutePath(), "remote" );
-            verifier.setAutoclean( false );
-            verifier.addCliOption( "-U" );
+            verifier = newVerifier( testDir.getAbsolutePath() );
             verifier.executeGoal( "verify" );
             fail( "Expected 'VerificationException' not thrown." );
         }

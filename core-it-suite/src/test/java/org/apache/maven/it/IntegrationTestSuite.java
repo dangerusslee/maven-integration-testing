@@ -123,6 +123,8 @@ public class IntegrationTestSuite
         suite.addTestSuite( MavenITmng5663NestedImportScopePomResolutionTest.class );
         suite.addTestSuite( MavenITmng2562Timestamp322Test.class );
         suite.addTestSuite( MavenITmng2199ParentVersionRangeTest.class );
+        suite.addTestSuite( MavenITmng2199ParentVersionRange350Test.class );
+        suite.addTestSuite( MavenITmng2199DeprecatedParentVersionRangeTest.class );
         suite.addTestSuite( MavenITmng5640LifecycleParticipantAfterSessionEnd.class );
         suite.addTestSuite( MavenITmng5639ImportScopePomResolutionTest.class );
         suite.addTestSuite( MavenITmng5608ProfileActivationWarningTest.class );
