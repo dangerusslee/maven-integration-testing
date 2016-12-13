@@ -28,17 +28,15 @@ import java.util.List;
 /**
  * This is a test set for <a href="https://issues.apache.org/jira/browse/MNG-4720">MNG-4720</a>.
  * 
- * @author Benjamin Bentmann
+ * @author Christian Schulte
  */
-public class MavenITmng4720DependencyManagementExclusionMergeTest
+public class MavenITmng4720DependencyManagementExclusionMerge36Test
     extends AbstractMavenIntegrationTestCase
 {
 
-    public MavenITmng4720DependencyManagementExclusionMergeTest()
+    public MavenITmng4720DependencyManagementExclusionMerge36Test()
     {
-        // Gave up on Maven 2 compat in 3.6.
-        // This comment (see below) is obsolete as of 3.6: should better have been excluded as well, now it's a matter of backward-compat
-        super( "[2.0.6,3.6)" );
+        super( "[3.6,)" );
     }
 
     /**
@@ -66,9 +64,7 @@ public class MavenITmng4720DependencyManagementExclusionMergeTest
         assertTrue( classpath.toString(), classpath.contains( "c-0.1.jar" ) );
 
         assertFalse( classpath.toString(), classpath.contains( "b-0.1.jar" ) );
-
-        // should better have been excluded as well, now it's a matter of backward-compat
-        assertTrue( classpath.toString(), classpath.contains( "d-0.1.jar" ) );
+        assertFalse( classpath.toString(), classpath.contains( "d-0.1.jar" ) );
     }
 
 }
